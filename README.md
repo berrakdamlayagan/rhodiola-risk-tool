@@ -8,7 +8,7 @@ Carlo simulation to screen elemental (heavy-metal) impurities in commercial
 (worst-case) conditions.
 
 **Project:** THD-2025-5312, Scientific Research Projects (BAP), Çanakkale Onsekiz Mart University
-**Team:** Prof. Dr. Özlem Tonguç Yayıntaş (Principal Investigator) · Assoc. Prof. Dr. Burcu Mestav · Res. Asst. Dr. Berrak Damla Yağan
+**Team:** Prof. Dr. Özlem Tonguç Yayıntaş (Principal Investigator) ·  Res. Asst. Dr. Berrak Damla Yağan  · Assoc. Prof. Dr. Burcu Mestav
 
 ---
 
@@ -99,7 +99,7 @@ is served at `https://berrakdamlayagan.github.io/rhodiola-risk-tool/` and the an
 
 ## Citation
 
-> Yayıntaş Ö. T., Mestav B., Yağan B. D. (2026). *Rhodiola rosea elemental
+> Yayıntaş Ö. T., Yağan B. D., Mestav B. (2026). *Rhodiola rosea elemental
 > impurity Decision Support Model (DSM) and Monte Carlo analysis* [Software].
 > Çanakkale Onsekiz Mart University, project THD-2025-5312. Available at:
 > https://github.com/berrakdamlayagan/rhodiola-risk-tool
