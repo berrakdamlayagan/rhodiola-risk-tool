@@ -38,7 +38,7 @@ lower-/middle-/upper-bound substitution scenarios for left-censored values.
 | `rhodiola_monte_carlo.html` | Rendered reproducible analysis (code + narrative + tables + figures) |
 | `rhodiola_monte_carlo.qmd` | Quarto source of the analysis above |
 | `rhodiola_monte_carlo.py` | Monte Carlo reproducibility script (Python); reproduces the manuscript tables and figures |
-| `grafik_ciz_exceldan.py` | Reads the Excel workbook and draws the publication figures |
+| `plot from excel.py` | Reads the Excel workbook and draws the publication figures |
 | `Rhodiola_MonteCarlo_Analiz.xlsx` | Full Monte Carlo workbook (data, deterministic, brand-based MC, live engine, charts) |
 | `Figure1_Pb_600dpi.png`, `Figure2_HI_scenarios_600dpi.png` | High-resolution manuscript figures |
 
