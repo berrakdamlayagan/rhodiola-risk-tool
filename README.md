@@ -1,4 +1,4 @@
-# Rhodiola rosea — Decision Support Model (DSM) for Elemental-Impurity Screening
+# Rhodiola rosea â€” Decision Support Model (DSM) for Elemental-Impurity Screening
 
 Software and reproducible analysis accompanying a manuscript on a **Decision
 Support Model (DSM)** that couples deterministic hazard indexing with Monte
@@ -7,8 +7,8 @@ Carlo simulation to screen elemental (heavy-metal) impurities in commercial
 **case study** demonstrating the model's behaviour under high-exposure
 (worst-case) conditions.
 
-**Project:** THD-2025-5312, Scientific Research Projects (BAP), Çanakkale Onsekiz Mart University
-**Team:** Prof. Dr. Özlem Tonguç Yayıntaş (Principal Investigator)  · Res. Asst. Dr. Berrak Damla Yağ  · Assoc. Prof. Dr. Burcu Mestav
+**Project:** THD-2025-5312, Scientific Research Projects (BAP), Ã‡anakkale Onsekiz Mart University
+**Team:** Prof. Dr. Ã–zlem TonguÃ§ YayÄ±ntaÅŸ (Principal Investigator) Â· Res. Asst. Dr. Berrak Damla YaÄŸan Â· Assoc. Prof. Dr. Burcu Mestav 
 
 ---
 
@@ -18,13 +18,11 @@ Once GitHub Pages is enabled (see below), two pages are served:
 
 | Page | Address | What it is |
 |------|---------|------------|
-| **DSM software** | `https://USERNAME.github.io/REPO/` | The interactive Decision Support Model (main link cited in the manuscript) |
-| **Reproducible analysis** | `https://USERNAME.github.io/REPO/rhodiola_monte_carlo.html` | Rendered report: code + tables + figures in one page (validation evidence) |
+| **DSM software** | `https://berrakdamlayagan.github.io/rhodiola-risk-tool/` | The interactive Decision Support Model (main link cited in the manuscript) |
+| **Reproducible analysis** | `https://berrakdamlayagan.github.io/rhodiola-risk-tool/rhodiola_monte_carlo.html` | Rendered report: code + tables + figures in one page (validation evidence) |
 
-👉 **[Open the DSM software](https://USERNAME.github.io/REPO/)**
-*(this is the link to paste into the manuscript's `[Link to the DSM software]`
-placeholder; replace `USERNAME/REPO` with your own address once Pages is
-enabled — see below)*
+ğŸ‘‰ **[Open the DSM software](https://berrakdamlayagan.github.io/rhodiola-risk-tool/)**
+*(this is the link to paste into the manuscript's `[Link to the DSM software]` placeholder)*
 
 The DSM runs entirely in the browser; no data are uploaded to any server. It
 computes estimated daily intake (EDI), hazard quotient (HQ), cumulative hazard
@@ -40,7 +38,7 @@ lower-/middle-/upper-bound substitution scenarios for left-censored values.
 | `rhodiola_monte_carlo.html` | Rendered reproducible analysis (code + narrative + tables + figures) |
 | `rhodiola_monte_carlo.qmd` | Quarto source of the analysis above |
 | `rhodiola_monte_carlo.py` | Monte Carlo reproducibility script (Python); reproduces the manuscript tables and figures |
-| `plot from excel.py` | Reads the Excel workbook and draws the publication figures |
+| `grafik_ciz_exceldan.py` | Reads the Excel workbook and draws the publication figures |
 | `Rhodiola_MonteCarlo_Analiz.xlsx` | Full Monte Carlo workbook (data, deterministic, brand-based MC, live engine, charts) |
 | `Figure1_Pb_600dpi.png`, `Figure2_HI_scenarios_600dpi.png` | High-resolution manuscript figures |
 
@@ -54,7 +52,7 @@ Use the **EN / TR** button for English or Turkish. Load the embedded example
 
 Two equivalent routes:
 
-- **Pre-rendered:** open `rhodiola_monte_carlo.html` — nothing to install.
+- **Pre-rendered:** open `rhodiola_monte_carlo.html` â€” nothing to install.
 - **From source** (Python 3 with `numpy`; `matplotlib` for figures, `openpyxl` for the Excel reader):
 
 ```bash
@@ -68,10 +66,10 @@ The Quarto version re-renders the HTML/PDF with `quarto render rhodiola_monte_ca
 
 ## Model (summary)
 
-- `EDI = C(mg/kg) × IR(g/day) × 1e-3 / BW`; `HQ = EDI / RfD`; `HI = Σ HQ`
-  over As, Cd, Ni, Hg, Co, V, Sb, Sn (Pb and total Cr excluded — no valid oral
+- `EDI = C(mg/kg) Ã— IR(g/day) Ã— 1e-3 / BW`; `HQ = EDI / RfD`; `HI = Î£ HQ`
+  over As, Cd, Ni, Hg, Co, V, Sb, Sn (Pb and total Cr excluded â€” no valid oral
   reference value / speciation needed).
-- Cancer screening (inorganic arsenic only): `CR_As = EDI_As × (ED/LT) × CSF_As`
+- Cancer screening (inorganic arsenic only): `CR_As = EDI_As Ã— (ED/LT) Ã— CSF_As`
   (lifetime averaging; ED = 30 y, LT = 70 y, CSF_As = 32).
 - Monte Carlo: 10,000 iterations, body weight ~ Uniform(50, 90) kg, resampling
   of same-lot packages; left-censored values handled under lower- (0),
@@ -82,31 +80,31 @@ The Quarto version re-renders the HTML/PDF with `quarto render rhodiola_monte_ca
 assumption, not an analytical limitation: it lets the DSM flag the highest
 plausible exposure before any species-specific refinement. Accordingly the
 arsenic-based CR is a **screening indicator, not a validated lifetime cancer
-risk** — the doses can exceed the range where the 2025 U.S. EPA linear slope
-factor applies (~0.2 µg/kg-day). Outputs are preliminary screening results for
+risk** â€” the doses can exceed the range where the 2025 U.S. EPA linear slope
+factor applies (~0.2 Âµg/kg-day). Outputs are preliminary screening results for
 the single lots examined and must not be generalised to the market.
 
 ## Notes
 
-- Product identities are anonymised as **Sup_A–Sup_F** throughout.
+- Product identities are anonymised as **Sup_Aâ€“Sup_F** throughout.
 - Toxicity reference values (RfD, CSF) are current as of 2026 and may be
   revised by regulatory agencies; verify against current sources before use.
 
 ## Enabling the live pages (GitHub Pages)
 
-Repository **Settings → Pages → Build and deployment → Source: Deploy from a
-branch → Branch: `main` / folder: `/ (root)` → Save**. After a minute the DSM
-is served at `https://USERNAME.github.io/REPO/` and the analysis at
-`https://USERNAME.github.io/REPO/rhodiola_monte_carlo.html`.
+Repository **Settings â†’ Pages â†’ Build and deployment â†’ Source: Deploy from a
+branch â†’ Branch: `main` / folder: `/ (root)` â†’ Save**. After a minute the DSM
+is served at `https://berrakdamlayagan.github.io/rhodiola-risk-tool/` and the analysis at
+`https://berrakdamlayagan.github.io/rhodiola-risk-tool/rhodiola_monte_carlo.html`.
 
 ## Citation
 
-> Yayıntaş Ö. T., Yağan B. D., Mestav B., (2026). *Rhodiola rosea elemental
+> YayÄ±ntaÅŸ Ã–. T., Mestav B., YaÄŸan B. D. (2026). *Rhodiola rosea elemental
 > impurity Decision Support Model (DSM) and Monte Carlo analysis* [Software].
-> Çanakkale Onsekiz Mart University, project THD-2025-5312. Available at:
-> https://github.com/USERNAME/REPO
+> Ã‡anakkale Onsekiz Mart University, project THD-2025-5312. Available at:
+> https://github.com/berrakdamlayagan/rhodiola-risk-tool
 
-*(Replace USERNAME/REPO. If you archive a release on Zenodo, add the DOI here.)*
+*(If you archive a release on Zenodo, add the DOI here.)*
 
 ## License
 
