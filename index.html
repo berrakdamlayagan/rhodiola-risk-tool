@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supplement Elemental Risk Assessment Tool (Monte Carlo)</title>
+<style>
+  :root{--blue:#3a3f47;--blue2:#23272e;--amber:#b5651d;--green:#4d7c43;--red:#a32d2d;--bg:#f4f5f6;--card:#fff;--border:#d8dee6;--muted:#5a6b7b;}
+  *{box-sizing:border-box}
+  body{font-family:'Segoe UI',Arial,sans-serif;margin:0;background:var(--bg);color:#1a2230;line-height:1.5;}
+  header{background:var(--blue);color:#fff;padding:16px 24px;position:relative;}
+  header h1{margin:0;font-size:19px;font-weight:600;} header p{margin:4px 0 0;font-size:13px;opacity:.9;}
+  #langBtn{position:absolute;top:16px;right:20px;background:#fff;color:var(--blue);border:none;border-radius:6px;padding:6px 14px;font-weight:700;cursor:pointer;font-size:13px;}
+  main{max-width:1140px;margin:0 auto;padding:18px;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:15px 18px;margin-bottom:15px;}
+  .card h2{margin:0 0 11px;font-size:15px;color:var(--blue2);border-bottom:2px solid var(--border);padding-bottom:7px;}
+  .supp{border:1px solid var(--border);border-left:4px solid var(--blue);border-radius:8px;padding:11px 13px;margin-bottom:11px;background:#fbfcfd;}
+  .supp .hd{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:7px;}
+  label{font-size:12px;color:var(--muted);}
+  input[type=number],input[type=text]{padding:5px 7px;border:1px solid var(--border);border-radius:6px;font-size:14px;}
+  .nm{width:110px;font-weight:600;} .ir{width:82px;}
+  table{border-collapse:collapse;width:100%;font-size:13px;}
+  th,td{border:1px solid var(--border);padding:5px 6px;text-align:center;}
+  th{background:var(--blue);color:#fff;font-weight:600;}
+  td input{width:60px;padding:3px;border:1px solid var(--border);border-radius:4px;text-align:center;font-size:12px;}
+  .tox-cell{width:78px}
+  button{background:var(--blue);color:#fff;border:none;border-radius:7px;padding:9px 16px;font-size:14px;cursor:pointer;font-weight:600;}
+  button:hover{background:var(--blue2);} button.sec{background:#eef2f7;color:var(--blue2);border:1px solid var(--border);}
+  button.sec:hover{background:#e2e9f1;} button.mini{padding:4px 10px;font-size:12px;}
+  button.dl{background:#eaf1e7;color:var(--green);border:1px solid #cfe0c6;}
+  button.del{background:#f7e3e3;color:var(--red);border:1px solid #e6c4c4;}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:8px;}
+  .note{font-size:12px;color:var(--muted);font-style:italic;margin-top:6px;}
+  .verdict{display:inline-block;padding:4px 11px;border-radius:5px;font-weight:700;font-size:13px;}
+  .safe{background:#e2efdc;color:var(--green);} .risk{background:#f7dcdc;color:var(--red);} .warn{background:#fdf3d9;color:var(--amber);}
+  tr.hi td{background:#f7dcdc;} tr.mid td{background:#fdf3d9;} tr.ok td{background:#f4faf1;}
+  .scroll{overflow-x:auto;}
+  canvas{max-width:100%;border:1px solid var(--border);border-radius:6px;background:#fff;}
+  .charts{display:flex;gap:16px;flex-wrap:wrap;} .charts>div{flex:1;min-width:340px;}
+  .flexwrap{display:flex;gap:24px;flex-wrap:wrap;} .flexwrap>div{flex:1;min-width:300px;}
+  .tabbar{display:flex;gap:4px;} .tab{background:#e7edf3;color:var(--blue2);border:1px solid var(--border);border-bottom:none;border-radius:9px 9px 0 0;padding:10px 20px;font-weight:600;cursor:pointer;font-size:14px;}
+  .tab.active{background:var(--card);color:var(--blue);position:relative;top:1px;}
+  .tabwrap{border:1px solid var(--border);border-radius:0 10px 10px 10px;background:var(--card);padding:16px;}
+  .hidden{display:none;}
+  footer{max-width:1140px;margin:0 auto;padding:14px 18px 30px;font-size:12px;color:var(--muted);}
+  footer b{color:var(--blue2);}
+</style>
+</head>
+<body>
+<header>
+  <h1 data-i18n="title"></h1>
+  <p data-i18n="subtitle"></p>
+  <button id="langBtn" onclick="setLang(LANG==='tr'?'en':'tr')">EN</button>
+</header>
+<main>
+
+<div class="card">
+  <h2 data-i18n="params"></h2>
+  <div class="row">
+    <div><label data-i18n="bwmin"></label><br><input class="ir" type="number" id="bwmin" value="50"></div>
+    <div><label data-i18n="bwmax"></label><br><input class="ir" type="number" id="bwmax" value="90"></div>
+    <div><label data-i18n="iter"></label><br><input class="ir" type="number" id="niter" value="10000"></div>
+    <div><label data-i18n="ed"></label><br><input class="ir" type="number" id="ed" value="30"></div>
+    <div><label data-i18n="lt"></label><br><input class="ir" type="number" id="lt" value="70"></div>
+    <div><label>Seed</label><br><input class="ir" type="number" id="seed" value="20260805"></div>
+    <div><label data-i18n="iAs"></label><br><input class="ir" type="number" id="iAs" value="100"></div>
+  </div>
+  <div class="note" data-i18n-html="paramsNote"></div>
+</div>
+
+<div class="card">
+  <h2 data-i18n="tox"></h2>
+  <div class="note" data-i18n-html="toxNote" style="margin-top:0"></div>
+  <div class="scroll" style="margin-top:8px"><table id="toxTable"></table></div>
+</div>
+
+<div class="tabbar">
+  <div class="tab active" data-t="single" onclick="switchTab('single')" data-i18n="tabSingle"></div>
+  <div class="tab" data-t="compare" onclick="switchTab('compare')" data-i18n="tabCompare"></div>
+</div>
+<div class="tabwrap">
+
+  <div id="pane-single">
+    <div class="row" style="margin-top:0"><div><label data-i18n="dose"></label><br><input class="ir" type="number" id="s_ir" step="0.01" value="0.20"></div></div>
+    <p class="note" data-i18n="rowNote"></p>
+    <div class="scroll"><table id="s_conc"></table></div>
+    <div class="row">
+      <button class="sec mini" onclick="sAddRow()" data-i18n="addRep"></button>
+      <button class="sec mini" onclick="sDelRow()" data-i18n="delRep"></button>
+      <button class="sec mini" onclick="sLoadEx()" data-i18n="loadA"></button>
+    </div>
+    <div class="row"><button onclick="runSingle()" data-i18n="runS"></button><span id="s_status" class="note"></span></div>
+    <div id="s_res" class="hidden" style="margin-top:14px">
+      <div class="flexwrap">
+        <div><b class="note" style="font-style:normal" data-i18n="detLbl"></b><br><span data-i18n="hiEq"></span> <b id="s_dHI"></b> · <span data-i18n="crEq"></span> <b id="s_dCR"></b> <span id="s_dV" class="verdict"></span></div>
+        <div><b class="note" style="font-style:normal" data-i18n="mcLbl"></b><br><span data-i18n="hiP95Eq"></span> <b id="s_mHI"></b> · <span data-i18n="crP95Eq"></span> <b id="s_mCR"></b> <span id="s_mV" class="verdict"></span><br><span class="note">P(HI&gt;1)=<b id="s_pHI"></b>% · P(CR&gt;1e-4)=<b id="s_pCR"></b>%</span></div>
+      </div>
+      <div data-i18n-html="crCaveat" style="margin-top:11px;padding:8px 11px;background:#fdf3d9;border-left:4px solid #b5651d;border-radius:6px;font-size:12px;color:#5a4a1a;line-height:1.45"></div>
+      <div class="scroll" style="margin-top:12px"><table id="s_table"></table></div>
+      <div class="row"><button class="dl mini" onclick="dlSingleTable()" data-i18n="dlTable"></button></div>
+      <canvas id="s_hist" style="margin-top:12px"></canvas>
+      <div class="note" data-i18n="histNote"></div>
+      <div class="row"><button class="dl mini" onclick="dlCanvas('s_hist','HI_histogram.png')" data-i18n="dlPng"></button></div>
+    </div>
+  </div>
+
+  <div id="pane-compare" class="hidden">
+    <p class="note" style="margin-top:0" data-i18n="cmpNote"></p>
+    <div class="row" style="margin-top:0">
+      <label class="sec mini" style="cursor:pointer;padding:6px 12px;border-radius:7px;"><span data-i18n="upCsv"></span><input type="file" id="csvFile" accept=".csv" style="display:none" onchange="importCSV(event)"></label>
+      <button class="sec mini" onclick="dlTemplate()" data-i18n="dlTpl"></button>
+    </div>
+    <div id="suppList" style="margin-top:10px"></div>
+    <div class="row">
+      <button class="sec" onclick="addSupp()" data-i18n="addSupp"></button>
+      <button class="sec" onclick="loadSix()" data-i18n="loadSix"></button>
+      <button class="sec" onclick="clearAll()" data-i18n="clear"></button>
+    </div>
+    <div class="row"><button onclick="runAll()" data-i18n="runC"></button><span id="c_status" class="note"></span></div>
+    <div id="c_res" class="hidden" style="margin-top:14px">
+      <div class="scroll"><table id="cmpTable"></table></div>
+      <div class="row"><button class="dl mini" onclick="dlCompareTable()" data-i18n="dlTable"></button></div>
+      <div class="note" data-i18n="decNote"></div>
+      <div data-i18n-html="crCaveat" style="margin-top:8px;padding:8px 11px;background:#fdf3d9;border-left:4px solid #b5651d;border-radius:6px;font-size:12px;color:#5a4a1a;line-height:1.45"></div>
+      <div class="charts" style="margin-top:12px">
+        <div><canvas id="chHI"></canvas><div class="row"><button class="dl mini" onclick="dlCanvas('chHI','HI_P95.png')">⬇ PNG</button></div></div>
+        <div><canvas id="chCR"></canvas><div class="row"><button class="dl mini" onclick="dlCanvas('chCR','CR_P95.png')">⬇ PNG</button></div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</main>
+<footer>
+  <p data-i18n-html="footDev"></p>
+  <p data-i18n-html="footWarn"></p>
+  <p data-i18n-html="footMethod"></p>
+</footer>
+
+<script>
+const ELEMENTS=["As","Cd","Pb","Cr","Ni","Hg","Co","V","Sb","Sn"];
+/* Pb: geçerli EPA oral RfD yok → HI dışı. Cr: türleşme (Cr VI≠toplam Cr) → HI dışı. Boş bırakıldı; kullanıcı isterse ekleyebilir. */
+const DEFAULT_RFD={As:0.00006,Cd:0.001,Ni:0.02,Hg:0.0003,Co:0.0003,V:0.005,Sb:0.0004,Sn:0.6};
+const DEFAULT_CSF={As:32}; /* CR yalnız inorganik As */
+const SIX=[{"name":"Sup_A","ir":0.2,"samples":[{"As":240.7909,"Cd":0,"Pb":2.6983,"Cr":43.3909,"Ni":1.0378,"Hg":0,"Co":0,"V":37.7431,"Sb":0.2185,"Sn":0.4697},{"As":283.9054,"Cd":3.0693,"Pb":7.4037,"Cr":53.1243,"Ni":4.7635,"Hg":0,"Co":11.4081,"V":40.165,"Sb":0.275,"Sn":1.0231},{"As":200.7309,"Cd":0,"Pb":2.3367,"Cr":92.4474,"Ni":1.5282,"Hg":0,"Co":9.4352,"V":24.629,"Sb":0.2215,"Sn":0.6977}]},{"name":"Sup_B","ir":0.25,"samples":[{"As":0,"Cd":0,"Pb":1.5386,"Cr":25.3708,"Ni":0.7084,"Hg":0,"Co":0.5424,"V":2.1253,"Sb":0.2214,"Sn":0},{"As":0,"Cd":0,"Pb":1.7837,"Cr":0,"Ni":0,"Hg":0,"Co":0,"V":1.1341,"Sb":0.2202,"Sn":0},{"As":0,"Cd":0,"Pb":2.3413,"Cr":0,"Ni":1.5424,"Hg":0,"Co":0.4549,"V":0.921,"Sb":0.1775,"Sn":0}]},{"name":"Sup_C","ir":0.35,"samples":[{"As":0,"Cd":0,"Pb":2.3862,"Cr":16.4394,"Ni":14.8669,"Hg":0,"Co":1.2866,"V":3.1449,"Sb":0.1869,"Sn":0},{"As":0,"Cd":0,"Pb":2.1049,"Cr":18.9112,"Ni":16.4426,"Hg":0,"Co":1.3335,"V":3.1078,"Sb":0.2094,"Sn":0.1433},{"As":0,"Cd":0,"Pb":1.9894,"Cr":16.8279,"Ni":21.1035,"Hg":0,"Co":1.0552,"V":2.7149,"Sb":0.1649,"Sn":0.4726}]},{"name":"Sup_D","ir":0.25,"samples":[{"As":0,"Cd":0,"Pb":1.3051,"Cr":4.1127,"Ni":3.8824,"Hg":0,"Co":0.3729,"V":1.0748,"Sb":0.1097,"Sn":0},{"As":0,"Cd":0,"Pb":1.6274,"Cr":4.1896,"Ni":5.861,"Hg":0,"Co":0.5608,"V":1.3855,"Sb":0.099,"Sn":0},{"As":0,"Cd":0,"Pb":2.0189,"Cr":82.9713,"Ni":5.6287,"Hg":0,"Co":0.6583,"V":1.6129,"Sb":0.0878,"Sn":0}]},{"name":"Sup_E","ir":0.25,"samples":[{"As":0,"Cd":0,"Pb":2.8387,"Cr":0,"Ni":2.0824,"Hg":0,"Co":0.3178,"V":0.1754,"Sb":0.0767,"Sn":0},{"As":0,"Cd":0,"Pb":1.5175,"Cr":17.9459,"Ni":1.0227,"Hg":0,"Co":0,"V":0,"Sb":0.044,"Sn":0},{"As":0,"Cd":0,"Pb":1.8659,"Cr":4.2417,"Ni":50.6617,"Hg":0,"Co":0.7702,"V":0,"Sb":0.0542,"Sn":0}]},{"name":"Sup_F","ir":0.25,"samples":[{"As":0,"Cd":0,"Pb":1.0437,"Cr":0,"Ni":1.7908,"Hg":0,"Co":0.3845,"V":0,"Sb":0,"Sn":0},{"As":0,"Cd":0,"Pb":5.5885,"Cr":2.152,"Ni":0.8564,"Hg":0,"Co":0.3074,"V":0,"Sb":0,"Sn":0},{"As":0,"Cd":0,"Pb":3.1078,"Cr":0,"Ni":9.2906,"Hg":0,"Co":0,"V":0,"Sb":0,"Sn":0}]}];
+
+const I18N={
+ title:{tr:"Takviye Elementel İmpürite Risk Değerlendirme Aracı",en:"Supplement Elemental Impurity Risk Assessment Tool"},
+ subtitle:{tr:"Monte Carlo tabanlı olasılıksal tarama · EDI · HQ · HI · As-tabanlı CR (LADD) · P95",en:"Monte Carlo probabilistic screening · EDI · HQ · HI · As-based CR (LADD) · P95"},
+ params:{tr:"Ortak parametreler",en:"Shared parameters"},
+ bwmin:{tr:"Vücut ağırlığı min (kg)",en:"Body weight min (kg)"},bwmax:{tr:"max (kg)",en:"max (kg)"},
+ iter:{tr:"İterasyon",en:"Iterations"},ed:{tr:"ED — maruziyet (yıl)",en:"ED — exposure (years)"},lt:{tr:"LT — yaşam süresi (yıl)",en:"LT — lifetime (years)"},
+ iAs:{tr:"İnorganik As (%)",en:"Inorganic As (%)"},
+ paramsNote:{tr:"EF=365, AT=ED×EF, CF=0.001 sabit. Vücut ağırlığı düzgün (uniform) dağılım. Kanser riski yaşam boyu ortalamayla hesaplanır: CR = EDI × (ED/LT) × CSF (LADD). Türleşme: As için %100 = muhafazakâr üst sınır; türleşme yoksa EFSA konvansiyonuyla %50 (alt) veya %90 (üst) girilebilir (EFSA 2009; Monboonpitak ve ark. 2018).",
+   en:"EF=365, AT=ED×EF, CF=0.001 (fixed). Body weight follows a uniform distribution. Cancer risk uses lifetime averaging: CR = EDI × (ED/LT) × CSF (LADD). Speciation: 100% for As = conservative upper bound; if unavailable, 50% (lower) or 90% (upper) may be entered per the EFSA convention (EFSA 2009; Monboonpitak et al. 2018)."},
+ tox:{tr:"Toksisite referans değerleri",en:"Toxicity reference values"},
+ toxNote:{tr:"As: U.S. EPA IRIS 2025 (RfD 6×10⁻⁵; CSF 32). CR yalnız inorganik As içindir. <b>Pb (geçerli oral RfD yok) ve toplam Cr (Cr(VI)≠toplam Cr, türleşme gerekli) HI/CR dışında bırakılmıştır</b> — hücreler boştur, isterseniz değer girip dahil edebilirsiniz. Referans değerler zamanla revize olabilir; son güncelleme Ağustos 2026.",
+   en:"As: U.S. EPA IRIS 2025 (RfD 6×10⁻⁵; CSF 32). CR is for inorganic As only. <b>Pb (no valid oral RfD) and total Cr (Cr(VI)≠total Cr, speciation needed) are excluded from HI/CR</b> — cells are empty; you may enter values to include them. Reference values may be revised over time; last updated August 2026."},
+ tabSingle:{tr:"Tek Ürün (detaylı)",en:"Single Product (detailed)"},tabCompare:{tr:"Çoklu Karşılaştırma",en:"Multi-product Comparison"},
+ dose:{tr:"Günlük doz IR (g/gün)",en:"Daily intake IR (g/day)"},
+ rowNote:{tr:"Her satır bir tekrar/numune. Boş = 0 (LoD/LoQ altı).",en:"Each row is a replicate/sample. Empty = 0 (below LoD/LoQ)."},
+ addRep:{tr:"+ Tekrar",en:"+ Replicate"},delRep:{tr:"− Tekrar",en:"− Replicate"},loadA:{tr:"Örnek yükle (Sup_A)",en:"Load example (Sup_A)"},
+ runS:{tr:"▶ Simülasyonu çalıştır",en:"▶ Run simulation"},
+ detLbl:{tr:"Deterministik (BW=70):",en:"Deterministic (BW=70):"},mcLbl:{tr:"Monte Carlo P95:",en:"Monte Carlo P95:"},
+ hiEq:{tr:"HI =",en:"HI ="},crEq:{tr:"As-CR =",en:"As-CR ="},hiP95Eq:{tr:"HI P95 =",en:"HI P95 ="},crP95Eq:{tr:"As-CR P95 =",en:"As-CR P95 ="},
+ dlTable:{tr:"⬇ Tabloyu indir (CSV)",en:"⬇ Download table (CSV)"},dlPng:{tr:"⬇ Grafiği indir (PNG)",en:"⬇ Download chart (PNG)"},
+ histNote:{tr:"Kırmızı kesikli çizgi ileri değerlendirme eşiğini (HI=1) gösterir.",en:"The red dashed line marks the further-assessment threshold (HI=1)."},
+ cmpNote:{tr:"Birden çok takviye ekleyin ya da CSV yükleyin.",en:"Add multiple supplements or upload a CSV."},
+ upCsv:{tr:"⬆ CSV yükle",en:"⬆ Upload CSV"},dlTpl:{tr:"⬇ CSV şablonu indir",en:"⬇ Download CSV template"},
+ addSupp:{tr:"+ Takviye ekle",en:"+ Add supplement"},loadSix:{tr:"Örnek yükle: 6 ürün",en:"Load example: 6 products"},clear:{tr:"Temizle",en:"Clear"},
+ runC:{tr:"▶ Çalıştır ve karşılaştır",en:"▶ Run and compare"},
+ decNote:{tr:"Eşikler: HI < 1 ve As-CR < 1×10⁻⁴. Eşik altı sonuçlar mutlak güvenlilik kanıtı değil, ileri değerlendirme gerektirmeyen tarama sonucu olarak yorumlanır.",en:"Thresholds: HI < 1 and As-CR < 1×10⁻⁴. Values below thresholds are screening outcomes not requiring further assessment, not proof of absolute safety."},
+ crCaveat:{tr:"<b>⚠ As-CR bir tarama göstergesidir, doğrulanmış kanser riski değildir.</b> Toplam arsenik %100 inorganik varsayılmıştır ve tahmini doz, 2025 U.S. EPA doğrusal kanser eğim faktörünün geçerli olduğu düşük-doz aralığını (~0,2 µg/kg-gün inorganik As) aşabilir. Bu durumda As-CR yalnızca ileri değerlendirme için ön göstergedir; kesin risk için arsenik türleşmesi ve uygun (gerekirse doğrusal olmayan) doz-yanıt modeli gereklidir (U.S. EPA 2025).",en:"<b>⚠ As-CR is a screening indicator, not a validated cancer risk.</b> Total arsenic is assumed to be 100% inorganic, and the estimated dose may exceed the low-dose range where the 2025 U.S. EPA linear cancer slope factor applies (~0.2 µg/kg-day inorganic As). As-CR is then only a provisional index for prioritising further assessment; a definitive estimate requires arsenic speciation and an appropriate (where needed, non-linear) dose–response model (U.S. EPA 2025)."},
+ prodName:{tr:"Ürün adı",en:"Product name"},doseIR:{tr:"Doz IR (g/gün)",en:"Dose IR (g/day)"},delProd:{tr:"Ürünü sil",en:"Delete product"},sample:{tr:"Numune",en:"Sample"},
+ param:{tr:"Parametre",en:"Parameter"},meanH:{tr:"Ortalama",en:"Mean"},medH:{tr:"Medyan (P50)",en:"Median (P50)"},
+ hiTot:{tr:"HI (toplam)",en:"HI (total)"},totCR:{tr:"As-tabanlı CR",en:"As-based CR"},
+ colProd:{tr:"Ürün",en:"Product"},colDose:{tr:"Doz (g)",en:"Dose (g)"},colDec:{tr:"Karar",en:"Decision"},
+ safe:{tr:"EŞİK ALTI",en:"BELOW THR."},risk:{tr:"HI≥1",en:"HI≥1"},crMarg:{tr:"CR>10⁻⁴",en:"CR>10⁻⁴"},
+ chHI:{tr:"HI P95 — ürün bazlı",en:"HI P95 — by product"},chCR:{tr:"As-CR P95 — ürün bazlı",en:"As-CR P95 — by product"},
+ hiAxis:{tr:"Tehlike İndeksi (HI)",en:"Hazard Index (HI)"},thr:{tr:"eşik",en:"threshold"},thrHI:{tr:"eşik HI=1",en:"threshold HI=1"},
+ stIter:{tr:"{n} iterasyon tamamlandı.",en:"{n} iterations completed."},stLoadA:{tr:"Örnek (Sup_A) yüklendi.",en:"Example (Sup_A) loaded."},
+ stSix:{tr:"6 ürün yüklendi.",en:"6 products loaded."},stCsv:{tr:"{n} ürün CSV'den yüklendi.",en:"{n} products loaded from CSV."},
+ stCmp:{tr:"{p} ürün · {n} iterasyon.",en:"{p} products · {n} iterations."},
+ alMin:{tr:"En az bir takviye ekleyin.",en:"Add at least one supplement."},alCsv:{tr:"Ürün bulunamadı. Şablonu indirip biçimi kontrol edin.",en:"No products found. Download the template and check the format."},
+ footDev:{tr:"<b>Geliştiren:</b> Bu araç, Çanakkale Onsekiz Mart Üniversitesi Bilimsel Araştırma Projeleri (THD-2025-5312) kapsamında geliştirilmiştir. Proje Yürütücüsü: Prof. Dr. Özlem Yayıntaş. Araştırmacılar: Doç. Dr. Burcu Mestav, Arş. Gör. Dr. Berrak Damla Yağan.",
+   en:"<b>Developed by:</b> This tool was developed within the Scientific Research Projects unit of Çanakkale Onsekiz Mart University (project THD-2025-5312). Principal Investigator: Prof. Dr. Özlem Yayıntaş. Researchers: Assoc. Prof. Dr. Burcu Mestav, Res. Asst. Dr. Berrak Damla Yağan."},
+ footWarn:{tr:"<b>⚠ Toksisite değerlerinin güncelliği:</b> RfD ve CSF değerleri düzenleyici kurumlarca (ör. U.S. EPA IRIS) revize edilebilir; inorganik As değerleri Ocak 2025'te güncellenmiştir. Gömülü değerler <b>Ağustos 2026</b> itibarıyladır. Hesaplama öncesinde toksisite tablosunu güncel yayınla karşılaştırıp gerektiğinde hücreleri düzenleyin.",
+   en:"<b>⚠ Currency of toxicity values:</b> RfD and CSF values may be revised by regulatory agencies (e.g., U.S. EPA IRIS); inorganic As values were updated in January 2025. Embedded values are current as of <b>August 2026</b>. Compare the toxicity table against current publications before calculating and edit the cells where necessary."},
+ footMethod:{tr:"Yöntem: U.S. EPA (1989) risk değerlendirme çerçevesi; olasılıksal analiz için U.S. EPA (1997, 2001). Kanser riski yaşam boyu ortalama (LADD, ED/LT) ile yalnız inorganik As için hesaplanır; Pb ve toplam Cr HI/CR dışındadır. Bu bir tarama (screening-level) aracıdır; As türleşmesi yapılmadığında sonuçlar üst-sınır niteliğindedir. Tüm hesaplamalar tarayıcıda yerel yapılır; veri hiçbir sunucuya gönderilmez.",
+   en:"Method: U.S. EPA (1989) risk framework; for probabilistic analysis U.S. EPA (1997, 2001). Cancer risk uses lifetime averaging (LADD, ED/LT) for inorganic As only; Pb and total Cr are excluded from HI/CR. This is a screening-level tool; without As speciation the results are upper-bound estimates. All computations run locally in the browser; no data are sent to any server."}
+};
+let LANG='tr';
+function t(k,vars){let s=(I18N[k]&&I18N[k][LANG])||k;if(vars)for(const v in vars)s=s.replace('{'+v+'}',vars[v]);return s;}
+
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function pct(a,p){const b=Float64Array.from(a).sort();return b[Math.floor(p*(b.length-1))];}
+function mean(a){let s=0;for(let i=0;i<a.length;i++)s+=a[i];return s/a.length;}
+function fmtCR(v){if(v===0)return "0";return v.toExponential(2).replace("e","×10^").replace("+","");}
+function switchTab(tab){document.querySelectorAll('.tab').forEach(function(x){x.classList.toggle('active',x.dataset.t===tab);});
+  document.getElementById('pane-single').classList.toggle('hidden',tab!=='single');
+  document.getElementById('pane-compare').classList.toggle('hidden',tab!=='compare');}
+const DPR=2.5;
+function hidpi(cv,w,h){cv.width=w*DPR;cv.height=h*DPR;cv.style.width=w+'px';cv.style.height=h+'px';const ctx=cv.getContext('2d');ctx.setTransform(DPR,0,0,DPR,0,0);return {ctx:ctx,W:w,H:h};}
+function dlCanvas(id,name){const cv=document.getElementById(id);const a=document.createElement('a');a.download=name;a.href=cv.toDataURL('image/png');a.click();}
+function dlCSV(rows,name){const csv='\ufeff'+rows.map(function(r){return r.map(function(c){c=String(c);return /[",\n;]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c;}).join(';');}).join('\n');const a=document.createElement('a');a.download=name;a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.click();}
+
+function applyStatic(){
+  document.querySelectorAll('[data-i18n]').forEach(function(el){el.textContent=t(el.dataset.i18n);});
+  document.querySelectorAll('[data-i18n-html]').forEach(function(el){el.innerHTML=t(el.dataset.i18nHtml);});
+  document.title=t('title');document.documentElement.lang=LANG;document.getElementById('langBtn').textContent=(LANG==='tr'?'EN':'TR');
+}
+function setLang(l){LANG=l;applyStatic();sBuild(sRead());render();if(lastSingle)renderSingle(lastSingle);if(lastCompare)renderCompare(lastCompare);}
+
+function buildTox(){
+  let h="<tr><th>Element</th>"+ELEMENTS.map(function(e){return "<th>"+e+"</th>";}).join("")+"</tr>";
+  h+="<tr><td><b>RfD</b></td>"+ELEMENTS.map(function(e){return '<td><input class="tox-cell" id="rfd_'+e+'" type="number" step="any" value="'+(DEFAULT_RFD[e]!==undefined?DEFAULT_RFD[e]:'')+'" placeholder="—"></td>';}).join("")+"</tr>";
+  h+="<tr><td><b>CSF</b></td>"+ELEMENTS.map(function(e){return '<td><input class="tox-cell" id="csf_'+e+'" type="number" step="any" value="'+(DEFAULT_CSF[e]!==undefined?DEFAULT_CSF[e]:'')+'" placeholder="—"></td>';}).join("")+"</tr>";
+  document.getElementById("toxTable").innerHTML=h;
+}
+function readTox(){
+  const RfD={},CSF={};ELEMENTS.forEach(function(e){const r=parseFloat(document.getElementById("rfd_"+e).value);if(!isNaN(r)&&r>0)RfD[e]=r;const c=parseFloat(document.getElementById("csf_"+e).value);if(!isNaN(c)&&c>0)CSF[e]=c;});
+  const ED=parseFloat(document.getElementById("ed").value),EF=365,LT=parseFloat(document.getElementById("lt").value)||70;
+  return {RfD:RfD,CSF:CSF,EF:EF,ED:ED,LT:LT,AT:ED*EF,CF:0.001,BWmin:parseFloat(document.getElementById("bwmin").value),BWmax:parseFloat(document.getElementById("bwmax").value),
+    N:parseInt(document.getElementById("niter").value),seed:parseInt(document.getElementById("seed").value),
+    iAs:(parseFloat(document.getElementById("iAs").value)||100)/100};
+}
+function simulate(sp,tox,detail){
+  const RfD=tox.RfD,CSF=tox.CSF,EF=tox.EF,ED=tox.ED,LT=tox.LT,AT=tox.AT,CF=tox.CF,N=tox.N,iAs=tox.iAs;
+  const HIel=ELEMENTS.filter(function(e){return RfD[e]>0;});
+  const CARC=ELEMENTS.filter(function(e){return CSF[e]>0;});
+  const rnd=mulberry32(tox.seed+sp.name.length*7+Math.round(sp.ir*100));
+  const HI=new Float64Array(N),CRt=new Float64Array(N);const ns=sp.samples.length;
+  let HQd=null,CRd=null;
+  if(detail){HQd={};HIel.forEach(function(e){HQd[e]=new Float64Array(N);});CRd={};CARC.forEach(function(e){CRd[e]=new Float64Array(N);});}
+  for(let i=0;i<N;i++){
+    const BW=tox.BWmin+rnd()*(tox.BWmax-tox.BWmin);const s=sp.samples[Math.floor(rnd()*ns)];let hi=0,crt=0;
+    HIel.forEach(function(e){let c=(s[e]||0);if(e==='As')c*=iAs;const EDI=(EF*ED*sp.ir*c*CF)/(BW*AT);const hq=EDI/RfD[e];hi+=hq;if(detail)HQd[e][i]=hq;});
+    CARC.forEach(function(e){let c=(s[e]||0);if(e==='As')c*=iAs;const EDI=(EF*ED*sp.ir*c*CF)/(BW*AT);const cr=EDI*(ED/LT)*CSF[e];crt+=cr;if(detail)CRd[e][i]=cr;});
+    HI[i]=hi;CRt[i]=crt;
+  }
+  const meanC={};ELEMENTS.forEach(function(e){meanC[e]=mean(sp.samples.map(function(s){return s[e]||0;}));});
+  let dHI=0,dCR=0;
+  HIel.forEach(function(e){let c=meanC[e];if(e==='As')c*=iAs;const EDI=(EF*ED*sp.ir*c*CF)/(70*AT);dHI+=EDI/RfD[e];});
+  CARC.forEach(function(e){let c=meanC[e];if(e==='As')c*=iAs;const EDI=(EF*ED*sp.ir*c*CF)/(70*AT);dCR+=EDI*(ED/LT)*CSF[e];});
+  return {name:sp.name,ir:sp.ir,dHI:dHI,dCR:dCR,HIel:HIel,CARC:CARC,hiMean:mean(HI),hiP95:pct(HI,0.95),crP95:pct(CRt,0.95),pHI:HI.filter(function(x){return x>1;}).length/N*100,pCR:CRt.filter(function(x){return x>1e-4;}).length/N*100,HI:detail?HI:null,HQd:HQd,CRd:CRd,CRt:detail?CRt:null};
+}
+
+/* SINGLE */
+let sRows=3,lastSingle=null;
+function sBuild(fill){let h="<tr><th>"+t('sample')+"</th>"+ELEMENTS.map(function(e){return "<th>"+e+"</th>";}).join("")+"</tr>";
+  for(let r=0;r<sRows;r++){h+="<tr><td>#"+(r+1)+"</td>"+ELEMENTS.map(function(e){let v=(fill&&fill[r]&&fill[r][e]!==undefined)?fill[r][e]:"";return '<td><input id="sc_'+r+'_'+e+'" type="number" step="any" value="'+v+'"></td>';}).join("")+"</tr>";}
+  document.getElementById("s_conc").innerHTML=h;}
+function sRead(){let rows=[];for(let r=0;r<sRows;r++){let o={};ELEMENTS.forEach(function(e){const el=document.getElementById("sc_"+r+"_"+e);o[e]=el?parseFloat(el.value)||0:0;});rows.push(o);}return rows;}
+function sAddRow(){sRows++;const c=sRead();sBuild(c);}
+function sDelRow(){if(sRows>1){sRows--;const c=sRead();sBuild(c);}}
+function sLoadEx(){sRows=3;sBuild(SIX[0].samples);document.getElementById("s_ir").value=0.20;document.getElementById("s_status").textContent=t('stLoadA');}
+function runSingle(){const tox=readTox();const sp={name:"P",ir:parseFloat(document.getElementById("s_ir").value),samples:sRead()};const r=simulate(sp,tox,true);lastSingle=r;renderSingle(r);document.getElementById("s_status").textContent=t('stIter',{n:tox.N.toLocaleString()});}
+function verdictSpan(safe,hiRisk){const cls=safe?"safe":(hiRisk?"risk":"warn");const txt=safe?t('safe'):(hiRisk?t('risk'):t('crMarg'));return '<span class="verdict '+cls+'">'+txt+'</span>';}
+function renderSingle(r){
+  document.getElementById("s_dHI").textContent=r.dHI.toFixed(3);document.getElementById("s_dCR").textContent=fmtCR(r.dCR);
+  const ds=r.dHI<1&&r.dCR<1e-4;document.getElementById("s_dV").outerHTML='<span id="s_dV" class="verdict '+(ds?"safe":"risk")+'">'+(ds?t('safe'):t('risk'))+'</span>';
+  document.getElementById("s_mHI").textContent=r.hiP95.toFixed(3);document.getElementById("s_mCR").textContent=fmtCR(r.crP95);
+  const ms=r.hiP95<1&&r.crP95<1e-4;document.getElementById("s_mV").outerHTML='<span id="s_mV" class="verdict '+(ms?"safe":"risk")+'">'+(ms?t('safe'):t('risk'))+'</span>';
+  document.getElementById("s_pHI").textContent=r.pHI.toFixed(1);document.getElementById("s_pCR").textContent=r.pCR.toFixed(1);
+  let h="<tr><th>"+t('param')+"</th><th>"+t('meanH')+"</th><th>"+t('medH')+"</th><th>P95</th></tr>";
+  r.HIel.forEach(function(e){h+="<tr><td>HQ · "+e+"</td><td>"+mean(r.HQd[e]).toFixed(4)+"</td><td>"+pct(r.HQd[e],0.5).toFixed(4)+"</td><td>"+pct(r.HQd[e],0.95).toFixed(4)+"</td></tr>";});
+  h+='<tr class="'+(r.hiP95>=1?'hi':'ok')+'"><td><b>'+t('hiTot')+'</b></td><td><b>'+r.hiMean.toFixed(3)+'</b></td><td><b>'+pct(r.HI,0.5).toFixed(3)+'</b></td><td><b>'+r.hiP95.toFixed(3)+'</b></td></tr>';
+  r.CARC.forEach(function(e){h+="<tr><td>CR · "+e+"</td><td>"+fmtCR(mean(r.CRd[e]))+"</td><td>"+fmtCR(pct(r.CRd[e],0.5))+"</td><td>"+fmtCR(pct(r.CRd[e],0.95))+"</td></tr>";});
+  h+='<tr class="'+(r.crP95>=1e-4?'mid':'ok')+'"><td><b>'+t('totCR')+'</b></td><td><b>'+fmtCR(mean(r.CRt))+'</b></td><td><b>'+fmtCR(pct(r.CRt,0.5))+'</b></td><td><b>'+fmtCR(r.crP95)+'</b></td></tr>';
+  document.getElementById("s_table").innerHTML=h;
+  drawHist(document.getElementById("s_hist"),r.HI);
+  document.getElementById("s_res").classList.remove("hidden");
+}
+function dlSingleTable(){if(!lastSingle)return;const r=lastSingle;const rows=[[t('param'),t('meanH'),"P50","P95"]];
+  r.HIel.forEach(function(e){rows.push(["HQ_"+e,mean(r.HQd[e]).toFixed(5),pct(r.HQd[e],0.5).toFixed(5),pct(r.HQd[e],0.95).toFixed(5)]);});
+  rows.push(["HI",r.hiMean.toFixed(4),pct(r.HI,0.5).toFixed(4),r.hiP95.toFixed(4)]);
+  r.CARC.forEach(function(e){rows.push(["CR_"+e,mean(r.CRd[e]).toExponential(3),pct(r.CRd[e],0.5).toExponential(3),pct(r.CRd[e],0.95).toExponential(3)]);});
+  rows.push(["As_CR_total",mean(r.CRt).toExponential(3),pct(r.CRt,0.5).toExponential(3),r.crP95.toExponential(3)]);
+  dlCSV(rows,"single_product_result.csv");}
+function drawHist(cv,HI){
+  const o=hidpi(cv,1000,300),ctx=o.ctx,W=o.W,H=o.H,pad=44;ctx.clearRect(0,0,W,H);
+  const xmax=Math.max(2,pct(HI,0.99)*1.1),nb=50,bw=xmax/nb,bins=new Array(nb).fill(0);
+  HI.forEach(function(v){let b=Math.floor(v/bw);if(b>=nb)b=nb-1;if(b<0)b=0;bins[b]++;});
+  const mc=Math.max.apply(null,bins),px=function(x){return pad+(x/xmax)*(W-2*pad);},py=function(c){return H-pad-(c/mc)*(H-2*pad);};
+  ctx.fillStyle="#3a3f47";bins.forEach(function(c,i){const x=px(i*bw),w=(W-2*pad)/nb-1,y=py(c);ctx.fillRect(x,y,w,H-pad-y);});
+  ctx.strokeStyle="#888";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad,pad);ctx.lineTo(pad,H-pad);ctx.lineTo(W-pad,H-pad);ctx.stroke();
+  if(xmax>1){ctx.strokeStyle="#a32d2d";ctx.setLineDash([6,4]);ctx.beginPath();ctx.moveTo(px(1),pad);ctx.lineTo(px(1),H-pad);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle="#a32d2d";ctx.font="13px Arial";ctx.textAlign="left";ctx.fillText(t('thrHI'),px(1)+4,pad+13);}
+  ctx.fillStyle="#555";ctx.font="12px Arial";ctx.textAlign="center";
+  for(let tk=0;tk<=xmax;tk+=Math.max(1,Math.round(xmax/8)))ctx.fillText(tk.toFixed(0),px(tk),H-pad+15);
+  ctx.fillText(t('hiAxis'),W/2,H-6);
+}
+
+/* COMPARE */
+let supps=[],lastCompare=null;
+function render(){const box=document.getElementById("suppList");box.innerHTML="";
+  supps.forEach(function(sp,si){let html='<div class="supp"><div class="hd"><label>'+t('prodName')+'</label><input class="nm" type="text" value="'+sp.name+'" oninput="supps['+si+'].name=this.value"><label>'+t('doseIR')+'</label><input class="ir" type="number" step="0.01" value="'+sp.ir+'" oninput="supps['+si+'].ir=parseFloat(this.value)||0"><button class="del mini" onclick="delSupp('+si+')">'+t('delProd')+'</button></div><div class="scroll"><table><tr><th>'+t('sample')+'</th>'+ELEMENTS.map(function(e){return "<th>"+e+"</th>";}).join("")+'</tr>';
+    sp.samples.forEach(function(s,ri){html+="<tr><td>#"+(ri+1)+"</td>"+ELEMENTS.map(function(e){return '<td><input type="number" step="any" value="'+(s[e]!==undefined?s[e]:'')+'" oninput="supps['+si+'].samples['+ri+"]['"+e+"']=parseFloat(this.value)||0\"></td>";}).join("")+"</tr>";});
+    html+='</table></div><div class="row"><button class="sec mini" onclick="addSample('+si+')">'+t('addRep')+'</button><button class="sec mini" onclick="delSample('+si+')">'+t('delRep')+'</button></div></div>';
+    box.innerHTML+=html;});
+}
+function emptyS(){let o={};ELEMENTS.forEach(function(e){o[e]=0;});return o;}
+function addSupp(){supps.push({name:"P"+(supps.length+1),ir:0.25,samples:[emptyS()]});render();}
+function delSupp(i){supps.splice(i,1);render();}
+function addSample(i){supps[i].samples.push(emptyS());render();}
+function delSample(i){if(supps[i].samples.length>1)supps[i].samples.pop();render();}
+function loadSix(){supps=JSON.parse(JSON.stringify(SIX));render();document.getElementById("c_status").textContent=t('stSix');}
+function clearAll(){supps=[{name:"P1",ir:0.25,samples:[emptyS()]}];render();}
+function dlTemplate(){const rows=[["Product","IR"].concat(ELEMENTS)];SIX.forEach(function(sp){sp.samples.forEach(function(s){rows.push([sp.name,sp.ir].concat(ELEMENTS.map(function(e){return s[e];})));});});dlCSV(rows,"data_template.csv");}
+function importCSV(ev){const f=ev.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=function(e){try{parseCSV(e.target.result);}catch(x){alert("CSV: "+x.message);}};rd.readAsText(f);ev.target.value="";}
+function parseCSV(txt){
+  const lines=txt.split(/\r?\n/).filter(function(l){return l.trim();});
+  const sep=lines[0].indexOf(';')>=0?';':',';
+  const hdr=lines[0].split(sep).map(function(s){return s.trim().replace(/^"|"$/g,'');});
+  const iU=hdr.findIndex(function(h){return /ürün|urun|product|marka|name/i.test(h);});
+  const iIR=hdr.findIndex(function(h){return /^ir$|doz|dose/i.test(h);});
+  const eidx={};ELEMENTS.forEach(function(e){eidx[e]=hdr.findIndex(function(h){return h.toLowerCase()===e.toLowerCase();});});
+  const map={};
+  for(let i=1;i<lines.length;i++){const c=lines[i].split(sep).map(function(x){return x.trim().replace(/^"|"$/g,'');});
+    const name=(iU>=0&&c[iU])?c[iU]:('P'+i);const ir=iIR>=0?(parseFloat((c[iIR]||'').replace(',','.'))||0.25):0.25;
+    if(!map[name])map[name]={name:name,ir:ir,samples:[]};const s={};ELEMENTS.forEach(function(e){s[e]=eidx[e]>=0?(parseFloat((c[eidx[e]]||'').replace(',','.'))||0):0;});map[name].samples.push(s);}
+  supps=Object.keys(map).map(function(k){return map[k];});if(!supps.length){alert(t('alCsv'));return;}
+  render();document.getElementById("c_status").textContent=t('stCsv',{n:supps.length});
+}
+function runAll(){if(supps.length===0){alert(t('alMin'));return;}const tox=readTox();const res=supps.map(function(sp){return simulate(sp,tox,false);});lastCompare=res;renderCompare(res);document.getElementById("c_status").textContent=t('stCmp',{p:res.length,n:tox.N.toLocaleString()});}
+function renderCompare(res){
+  let h="<tr><th>"+t('colProd')+"</th><th>"+t('colDose')+"</th><th>HI P95</th><th>As-CR P95</th><th>P(HI&gt;1)%</th><th>P(CR&gt;1e-4)%</th><th>"+t('colDec')+"</th></tr>";
+  res.forEach(function(r){const safe=r.hiP95<1&&r.crP95<1e-4;const cls=r.hiP95>=1?"hi":(r.crP95>=1e-4?"mid":"ok");
+    h+='<tr class="'+cls+'"><td><b>'+r.name+'</b></td><td>'+r.ir+'</td><td>'+r.hiP95.toFixed(3)+'</td><td>'+fmtCR(r.crP95)+'</td><td>'+r.pHI.toFixed(1)+'</td><td>'+r.pCR.toFixed(1)+'</td><td>'+verdictSpan(safe,r.hiP95>=1)+'</td></tr>';});
+  document.getElementById("cmpTable").innerHTML=h;
+  drawBars(document.getElementById("chHI"),res.map(function(r){return r.name;}),res.map(function(r){return r.hiP95;}),1,t('chHI'));
+  drawBars(document.getElementById("chCR"),res.map(function(r){return r.name;}),res.map(function(r){return r.crP95;}),1e-4,t('chCR'));
+  document.getElementById("c_res").classList.remove("hidden");
+}
+function dlCompareTable(){if(!lastCompare)return;const rows=[["Product","Dose_g","HI_P95","As_CR_P95","P_HI_gt1_%","P_CR_gt1e-4_%","Decision"]];
+  lastCompare.forEach(function(r){const safe=r.hiP95<1&&r.crP95<1e-4;rows.push([r.name,r.ir,r.hiP95.toFixed(4),r.crP95.toExponential(3),r.pHI.toFixed(1),r.pCR.toFixed(1),safe?"below_thr":(r.hiP95>=1?"HI_ge_1":"CR_gt_1e-4")]);});
+  dlCSV(rows,"comparison_result.csv");}
+function drawBars(cv,labels,values,threshold,title){
+  const o=hidpi(cv,540,330),ctx=o.ctx,W=o.W,H=o.H;ctx.clearRect(0,0,W,H);
+  const padL=64,padR=16,padT=32,padB=44;
+  const pos=values.filter(function(v){return v>0;});const floor=(pos.length?Math.min.apply(null,pos):threshold)/10;
+  const vv=values.map(function(v){return v>0?v:floor;});
+  let lo=Math.pow(10,Math.floor(Math.log10(Math.min.apply(null,vv.concat([threshold])))));
+  let hi=Math.pow(10,Math.ceil(Math.log10(Math.max.apply(null,vv.concat([threshold])))));
+  if(lo===hi)hi=lo*10;const L=Math.log10,ly=function(v){return H-padB-((L(v)-L(lo))/(L(hi)-L(lo)))*(H-padT-padB);};
+  ctx.fillStyle="#23272e";ctx.font="bold 14px Arial";ctx.textAlign="left";ctx.fillText(title,padL-4,16);
+  ctx.strokeStyle="#eee";ctx.lineWidth=1;ctx.fillStyle="#888";ctx.font="11px Arial";ctx.textAlign="right";
+  for(let d=Math.log10(lo);d<=Math.log10(hi)+0.01;d++){const yy=ly(Math.pow(10,d));ctx.beginPath();ctx.moveTo(padL,yy);ctx.lineTo(W-padR,yy);ctx.stroke();ctx.fillText("10^"+d,padL-6,yy+3);}
+  ctx.strokeStyle="#888";ctx.beginPath();ctx.moveTo(padL,padT);ctx.lineTo(padL,H-padB);ctx.lineTo(W-padR,H-padB);ctx.stroke();
+  const n=values.length,slot=(W-padL-padR)/n,bw=slot*0.56;
+  values.forEach(function(v,i){const x=padL+(i+0.5)*slot,val=v>0?v:floor,y=ly(val);
+    ctx.fillStyle=v>=threshold?"#b5651d":"#3a3f47";ctx.fillRect(x-bw/2,y,bw,H-padB-y);
+    ctx.fillStyle="#333";ctx.font="11px Arial";ctx.textAlign="center";ctx.fillText(v>=0.01?v.toFixed(2):fmtCR(v),x,y-4);ctx.fillText(labels[i],x,H-padB+14);});
+  const ty=ly(threshold);ctx.strokeStyle="#a32d2d";ctx.setLineDash([6,4]);ctx.beginPath();ctx.moveTo(padL,ty);ctx.lineTo(W-padR,ty);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle="#a32d2d";ctx.textAlign="left";ctx.font="12px Arial";ctx.fillText(t('thr')+" "+(threshold<0.001?fmtCR(threshold):threshold),padL+2,ty-3);
+}
+
+applyStatic();buildTox();sBuild(SIX[0].samples);loadSix();
+</script>
+</body>
+</html>

@@ -1,0 +1,174 @@
+---
+title: "Rhodiola rosea — Elemental Impurity Monte Carlo Screening"
+subtitle: "Reproducible supplementary analysis (deterministic HI and As-based CR)"
+author: "B. Mestav, Department of Statistics — Project THD-2025-5312"
+date: today
+format:
+  html:
+    toc: true
+    embed-resources: true
+    code-fold: show
+    theme: cosmo
+  pdf:
+    toc: true
+jupyter: python3
+---
+
+## Overview
+
+This document reproduces the screening analysis reported in the manuscript:
+the **deterministic lower-bound hazard index (HI) and arsenic-based cancer
+screening index (CR_As)** (Table 4) and the **Monte Carlo 95th-percentile
+outputs** under lower-, middle- and upper-bound substitution of censored
+measurements (Table 5), together with Figure 1 (lead concentrations) and
+Figure 2 (HI scenarios).
+
+**Model.** `EDI = C(mg/kg) × IR(g/day) × 1e-3 / BW`;
+`HQ_e = EDI_e / RfD_e`; `HI = Σ HQ` over {As, Cd, Ni, Hg, Co, V, Sb, Sn}
+(Pb and total Cr excluded). Cancer screening (inorganic-As only):
+`LADD_As = EDI_As × (ED/LT)`, `CR_As = LADD_As × CSF_As`.
+Constants: `ED=30 y, LT=70 y, EF=365, AT=EF·ED, CF=1e-3,
+BW~Uniform(50,90) kg, N=10000, seed=20260805`.
+Censoring (LB/MB/UB): `<MLoD → 0 / MLoD/2 / MLoD`;
+`<MLoQ → 0 / MLoQ/2 / MLoQ`.
+
+## Setup: data, limits and functions
+
+```{python}
+import numpy as np
+import pandas as pd
+
+EL = ['As','Cd','Pb','Cr','Ni','Hg','Co','V','Sb','Sn']
+
+# Table-4 censored concentrations (mg/kg). 'D'=<MLoD, 'Q'=<MLoQ
+T4 = {
+ 'S1' :[240.7909,'D',2.6983,43.3909,1.0378,'D','D',37.7431,0.2185,0.4697],
+ 'S2' :[283.9054,3.0693,7.4037,53.1243,4.7635,'D',11.4081,40.165,0.275,1.0231],
+ 'S3' :[200.7309,'Q',2.3367,92.4474,1.5282,'D',9.4352,24.629,0.2215,0.6977],
+ 'S4' :['Q','D',1.5386,25.3708,0.7084,'D',0.5424,2.1253,0.2214,'Q'],
+ 'S5' :['D','D',1.7837,'Q','Q','D','Q',1.1341,0.2202,'Q'],
+ 'S6' :['D','D',2.3413,'D',1.5424,'D',0.4549,0.921,0.1775,'Q'],
+ 'S7' :['Q','D',2.3862,16.4394,14.8669,'D',1.2866,3.1449,0.1869,'Q'],
+ 'S8' :['Q','Q',2.1049,18.9112,16.4426,'D',1.3335,3.1078,0.2094,0.1433],
+ 'S9' :['D','D',1.9894,16.8279,21.1035,'D',1.0552,2.7149,0.1649,0.4726],
+ 'S10':['D','D',1.3051,4.1127,3.8824,'D',0.3729,1.0748,0.1097,'Q'],
+ 'S11':['Q','Q',1.6274,4.1896,5.861,'D',0.5608,1.3855,0.099,'D'],
+ 'S12':['Q','D',2.0189,82.9713,5.6287,'D',0.6583,1.6129,0.0878,'Q'],
+ 'S13':['Q','D',2.8387,'D',2.0824,'D',0.3178,0.1754,0.0767,'Q'],
+ 'S14':['D','D',1.5175,17.9459,1.0227,'D','D','D',0.044,'D'],
+ 'S15':['D','D',1.8659,4.2417,50.6617,'D',0.7702,'D',0.0542,'D'],
+ 'S16':['D','D',1.0437,'D',1.7908,'D',0.3845,'D','Q','D'],
+ 'S17':['D','D',5.5885,2.152,0.8564,'D',0.3074,'D','D','D'],
+ 'S18':['D','D',3.1078,'Q',9.2906,'D','Q','D','Q','D'],
+}
+PROD = {s:p for s,p in zip(T4, sum([[c]*3 for c in 'ABCDEF'],[]))}
+IR   = {'A':0.20,'B':0.25,'C':0.35,'D':0.25,'E':0.25,'F':0.25}  # g/day
+
+MLoD = {'As':0.550,'Cd':0.689,'Pb':0.248,'Cr':0.159,'Ni':0.136,
+        'Hg':1.470,'Co':0.0834,'V':0.0461,'Sb':0.0121,'Sn':0.0351}
+MLoQ = {e: MLoD[e]*3.33 for e in EL}
+MLoQ.update({'As':1.833,'Cd':2.293,'Pb':0.823,'Hg':4.894})
+
+RfD = {'As':6e-5,'Cd':1e-3,'Ni':2e-2,'Hg':3e-4,'Co':3e-4,'V':5e-3,'Sb':4e-4,'Sn':0.6}
+CSF_As = 32.0
+EF, ED, LT, CF, N, SEED = 365, 30, 70, 1e-3, 10000, 20260805
+AT = EF*ED
+
+def value(e, cell, scen):
+    if not isinstance(cell, str): return cell
+    if cell == 'D': return {'LB':0.0,'MB':MLoD[e]/2,'UB':MLoD[e]}[scen]
+    if cell == 'Q': return {'LB':0.0,'MB':MLoQ[e]/2,'UB':MLoQ[e]}[scen]
+    raise ValueError(cell)
+
+def hi_cr(sample, ir, bw):
+    hi = sum((sample[e]*ir*CF/bw)/RfD[e] for e in RfD)
+    cr = (sample['As']*ir*CF/bw)*(ED/LT)*CSF_As
+    return hi, cr
+```
+
+## Table 4 — deterministic lower-bound (BW = 70 kg)
+
+```{python}
+rows = []
+for s in T4:
+    smp = {EL[j]: value(EL[j], T4[s][j], 'LB') for j in range(10)}
+    hi, cr = hi_cr(smp, IR[PROD[s]], 70.0)
+    rows.append([s, f"Sup_{PROD[s]}", round(hi,4), f"{cr:.2e}"])
+tab4 = pd.DataFrame(rows, columns=["Sample","Product","HI (LB)","CR_As (LB)"])
+tab4
+```
+
+## Table 5 — Monte Carlo P95 by product and scenario
+
+```{python}
+P95_HI = {}
+rows = []
+for scen in ['LB','MB','UB']:
+    for p in 'ABCDEF':
+        samps = [{EL[j]: value(EL[j], T4[s][j], scen) for j in range(10)}
+                 for s in T4 if PROD[s]==p]
+        np.random.seed(SEED)                 # reset once per product
+        bw  = np.random.uniform(50, 90, N)
+        idx = np.random.choice([0,1,2], N)
+        HI  = np.array([hi_cr(samps[idx[i]], IR[p], bw[i])[0] for i in range(N)])
+        CR  = np.array([hi_cr(samps[idx[i]], IR[p], bw[i])[1] for i in range(N)])
+        P95_HI[(scen,p)] = np.percentile(HI,95)
+        rows.append([f"Sup_{p}", scen, round(np.percentile(HI,95),3),
+                     f"{np.percentile(CR,95):.2e}", round(100*(CR>1e-4).mean(),1)])
+tab5 = pd.DataFrame(rows, columns=["Product","Scenario","HI P95","CR_As P95","CR_As>1e-4 (%)"])
+tab5
+```
+
+## Figure 1 — Lead concentrations in the 18 packages
+
+```{python}
+#| label: fig-pb
+#| fig-cap: "Lead concentrations with the 3.0 mg/kg comparison level; exceedances highlighted."
+import matplotlib.pyplot as plt
+labs = [f"{c}{k+1}" for c in "ABCDEF" for k in range(3)]
+pb   = [T4[f"S{i+1}"][2] for i in range(18)]
+exc  = [v > 3.0 for v in pb]
+fig, ax = plt.subplots(figsize=(9,3.3))
+ax.bar(range(18), pb, width=0.74, zorder=3, edgecolor="white", linewidth=0.6,
+       color=["#c0702f" if e else "#5b6b7a" for e in exc])
+ax.axhline(3.0, color="#a32d2d", ls="--", lw=1.2)
+for i,v in enumerate(pb):
+    if exc[i]: ax.text(i, v+0.12, f"{v:.2f}", ha="center", va="bottom", fontsize=8.5, fontweight="bold")
+ax.set_xticks(range(18)); ax.set_xticklabels(labs, fontsize=8.5)
+ax.set_ylabel("Lead concentration (mg/kg)"); ax.set_ylim(0,8.2)
+ax.grid(axis="y", color="#e6e6e6", lw=0.6, zorder=0)
+for sp in ("top","right"): ax.spines[sp].set_visible(False)
+plt.tight_layout(); plt.show()
+```
+
+## Figure 2 — LB/MB/UB P95 hazard index
+
+```{python}
+#| label: fig-hi
+#| fig-cap: "Monte Carlo P95 hazard index under the three substitution scenarios (log scale)."
+SUP = list("ABCDEF"); x = np.arange(6)
+style = {'LB':("#2e5a7a","-","o","Lower-bound (LB)"),
+         'MB':("#7a6a55","--","s","Middle-bound (MB)"),
+         'UB':("#c0702f",":","o","Upper-bound (UB)")}
+fig, ax = plt.subplots(figsize=(9,3.6))
+for scen in ['LB','MB','UB']:
+    col, ls, mk, lab = style[scen]
+    ax.plot(x, [P95_HI[(scen,p)] for p in SUP], ls, color=col, marker=mk, ms=5, lw=1.6, label=lab)
+ax.axhline(1, color="#333", ls="-.", lw=1.1, label="HI = 1 screening level")
+ax.set_yscale("log"); ax.set_xticks(x); ax.set_xticklabels([f"Sup_{p}" for p in SUP])
+ax.set_ylabel("Modeled P95 hazard index (log scale)")
+ax.grid(axis="y", which="both", color="#ededed", lw=0.6)
+for sp in ("top","right"): ax.spines[sp].set_visible(False)
+ax.legend(fontsize=8.5, ncol=2, frameon=False, loc="upper right")
+plt.tight_layout(); plt.show()
+```
+
+## Notes
+
+- `CR_As` is a **provisional screening index**: total arsenic is assumed
+  100% inorganic and the Sup_A doses exceed the low-dose range where the
+  2025 US EPA linear slope factor applies (~0.2 µg/kg-day). It is not a
+  validated lifetime cancer risk.
+- P95 proportions are fractions of model iterations, not of consumers.
+- Matrix MLoD/MLoQ assume a ~1/100 working dilution; confirmation of the
+  actual weighing/dilution would fix these to exact values.
