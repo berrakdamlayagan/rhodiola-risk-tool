@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Supplement Elemental Risk Assessment Tool (Monte Carlo)</title>
+<title>Elemental-Impurity Decision-Support Screening Tool (DSM)</title>
 <style>
   :root{--blue:#3a3f47;--blue2:#23272e;--amber:#b5651d;--green:#4d7c43;--red:#a32d2d;--bg:#f4f5f6;--card:#fff;--border:#d8dee6;--muted:#5a6b7b;}
   *{box-sizing:border-box}
@@ -50,7 +50,6 @@
 <header>
   <h1 data-i18n="title"></h1>
   <p data-i18n="subtitle"></p>
-  <button id="langBtn" onclick="setLang(LANG==='tr'?'en':'tr')">EN</button>
 </header>
 <main>
 
@@ -93,9 +92,10 @@
     <div id="s_res" class="hidden" style="margin-top:14px">
       <div class="flexwrap">
         <div><b class="note" style="font-style:normal" data-i18n="detLbl"></b><br><span data-i18n="hiEq"></span> <b id="s_dHI"></b> · <span data-i18n="crEq"></span> <b id="s_dCR"></b> <span id="s_dV" class="verdict"></span></div>
-        <div><b class="note" style="font-style:normal" data-i18n="mcLbl"></b><br><span data-i18n="hiP95Eq"></span> <b id="s_mHI"></b> · <span data-i18n="crP95Eq"></span> <b id="s_mCR"></b> <span id="s_mV" class="verdict"></span><br><span class="note">P(HI&gt;1)=<b id="s_pHI"></b>% · P(CR&gt;1e-4)=<b id="s_pCR"></b>%</span></div>
+        <div><b class="note" style="font-style:normal" data-i18n="mcLbl"></b><br><span data-i18n="hiP95Eq"></span> <b id="s_mHI"></b> · <span data-i18n="crP95Eq"></span> <b id="s_mCR"></b> <span id="s_mV" class="verdict"></span><br><span class="note">P(HI&gt;1)=<b id="s_pHI"></b>% · P(CR&gt;1e-4)=<b id="s_pCR"></b>%</span><br><span class="note" style="color:#2f5d87">HI P95 (As excluded) = <b id="s_mHIx"></b> · HI det. (As excluded) = <b id="s_dHIx"></b></span></div>
       </div>
       <div data-i18n-html="crCaveat" style="margin-top:11px;padding:8px 11px;background:#fdf3d9;border-left:4px solid #b5651d;border-radius:6px;font-size:12px;color:#5a4a1a;line-height:1.45"></div>
+      <div class="note" data-i18n-html="asExclNote" style="margin-top:8px"></div>
       <div class="scroll" style="margin-top:12px"><table id="s_table"></table></div>
       <div class="row"><button class="dl mini" onclick="dlSingleTable()" data-i18n="dlTable"></button></div>
       <canvas id="s_hist" style="margin-top:12px"></canvas>
@@ -122,6 +122,7 @@
       <div class="row"><button class="dl mini" onclick="dlCompareTable()" data-i18n="dlTable"></button></div>
       <div class="note" data-i18n="decNote"></div>
       <div data-i18n-html="crCaveat" style="margin-top:8px;padding:8px 11px;background:#fdf3d9;border-left:4px solid #b5651d;border-radius:6px;font-size:12px;color:#5a4a1a;line-height:1.45"></div>
+      <div class="note" data-i18n-html="asExclNote" style="margin-top:8px"></div>
       <div class="charts" style="margin-top:12px">
         <div><canvas id="chHI"></canvas><div class="row"><button class="dl mini" onclick="dlCanvas('chHI','HI_P95.png')">⬇ PNG</button></div></div>
         <div><canvas id="chCR"></canvas><div class="row"><button class="dl mini" onclick="dlCanvas('chCR','CR_P95.png')">⬇ PNG</button></div></div>
@@ -145,7 +146,7 @@ const DEFAULT_CSF={As:32}; /* CR yalnız inorganik As */
 const SIX=[{"name":"Sup_A","ir":0.2,"samples":[{"As":240.7909,"Cd":0,"Pb":2.6983,"Cr":43.3909,"Ni":1.0378,"Hg":0,"Co":0,"V":37.7431,"Sb":0.2185,"Sn":0.4697},{"As":283.9054,"Cd":3.0693,"Pb":7.4037,"Cr":53.1243,"Ni":4.7635,"Hg":0,"Co":11.4081,"V":40.165,"Sb":0.275,"Sn":1.0231},{"As":200.7309,"Cd":0,"Pb":2.3367,"Cr":92.4474,"Ni":1.5282,"Hg":0,"Co":9.4352,"V":24.629,"Sb":0.2215,"Sn":0.6977}]},{"name":"Sup_B","ir":0.25,"samples":[{"As":0,"Cd":0,"Pb":1.5386,"Cr":25.3708,"Ni":0.7084,"Hg":0,"Co":0.5424,"V":2.1253,"Sb":0.2214,"Sn":0},{"As":0,"Cd":0,"Pb":1.7837,"Cr":0,"Ni":0,"Hg":0,"Co":0,"V":1.1341,"Sb":0.2202,"Sn":0},{"As":0,"Cd":0,"Pb":2.3413,"Cr":0,"Ni":1.5424,"Hg":0,"Co":0.4549,"V":0.921,"Sb":0.1775,"Sn":0}]},{"name":"Sup_C","ir":0.35,"samples":[{"As":0,"Cd":0,"Pb":2.3862,"Cr":16.4394,"Ni":14.8669,"Hg":0,"Co":1.2866,"V":3.1449,"Sb":0.1869,"Sn":0},{"As":0,"Cd":0,"Pb":2.1049,"Cr":18.9112,"Ni":16.4426,"Hg":0,"Co":1.3335,"V":3.1078,"Sb":0.2094,"Sn":0.1433},{"As":0,"Cd":0,"Pb":1.9894,"Cr":16.8279,"Ni":21.1035,"Hg":0,"Co":1.0552,"V":2.7149,"Sb":0.1649,"Sn":0.4726}]},{"name":"Sup_D","ir":0.25,"samples":[{"As":0,"Cd":0,"Pb":1.3051,"Cr":4.1127,"Ni":3.8824,"Hg":0,"Co":0.3729,"V":1.0748,"Sb":0.1097,"Sn":0},{"As":0,"Cd":0,"Pb":1.6274,"Cr":4.1896,"Ni":5.861,"Hg":0,"Co":0.5608,"V":1.3855,"Sb":0.099,"Sn":0},{"As":0,"Cd":0,"Pb":2.0189,"Cr":82.9713,"Ni":5.6287,"Hg":0,"Co":0.6583,"V":1.6129,"Sb":0.0878,"Sn":0}]},{"name":"Sup_E","ir":0.25,"samples":[{"As":0,"Cd":0,"Pb":2.8387,"Cr":0,"Ni":2.0824,"Hg":0,"Co":0.3178,"V":0.1754,"Sb":0.0767,"Sn":0},{"As":0,"Cd":0,"Pb":1.5175,"Cr":17.9459,"Ni":1.0227,"Hg":0,"Co":0,"V":0,"Sb":0.044,"Sn":0},{"As":0,"Cd":0,"Pb":1.8659,"Cr":4.2417,"Ni":50.6617,"Hg":0,"Co":0.7702,"V":0,"Sb":0.0542,"Sn":0}]},{"name":"Sup_F","ir":0.25,"samples":[{"As":0,"Cd":0,"Pb":1.0437,"Cr":0,"Ni":1.7908,"Hg":0,"Co":0.3845,"V":0,"Sb":0,"Sn":0},{"As":0,"Cd":0,"Pb":5.5885,"Cr":2.152,"Ni":0.8564,"Hg":0,"Co":0.3074,"V":0,"Sb":0,"Sn":0},{"As":0,"Cd":0,"Pb":3.1078,"Cr":0,"Ni":9.2906,"Hg":0,"Co":0,"V":0,"Sb":0,"Sn":0}]}];
 
 const I18N={
- title:{tr:"Takviye Elementel İmpürite Risk Değerlendirme Aracı",en:"Supplement Elemental Impurity Risk Assessment Tool"},
+ title:{tr:"Takviye Elementel İmpürite Risk Değerlendirme Aracı",en:"Elemental-Impurity Decision-Support Screening Tool (DSM, pilot)"},
  subtitle:{tr:"Monte Carlo tabanlı olasılıksal tarama · EDI · HQ · HI · As-tabanlı CR (LADD) · P95",en:"Monte Carlo probabilistic screening · EDI · HQ · HI · As-based CR (LADD) · P95"},
  params:{tr:"Ortak parametreler",en:"Shared parameters"},
  bwmin:{tr:"Vücut ağırlığı min (kg)",en:"Body weight min (kg)"},bwmax:{tr:"max (kg)",en:"max (kg)"},
@@ -171,6 +172,7 @@ const I18N={
  runC:{tr:"▶ Çalıştır ve karşılaştır",en:"▶ Run and compare"},
  decNote:{tr:"Eşikler: HI < 1 ve As-CR < 1×10⁻⁴. Eşik altı sonuçlar mutlak güvenlilik kanıtı değil, ileri değerlendirme gerektirmeyen tarama sonucu olarak yorumlanır.",en:"Thresholds: HI < 1 and As-CR < 1×10⁻⁴. Values below thresholds are screening outcomes not requiring further assessment, not proof of absolute safety."},
  crCaveat:{tr:"<b>⚠ As-CR bir tarama göstergesidir, doğrulanmış kanser riski değildir.</b> Toplam arsenik %100 inorganik varsayılmıştır ve tahmini doz, 2025 U.S. EPA doğrusal kanser eğim faktörünün geçerli olduğu düşük-doz aralığını (~0,2 µg/kg-gün inorganik As) aşabilir. Bu durumda As-CR yalnızca ileri değerlendirme için ön göstergedir; kesin risk için arsenik türleşmesi ve uygun (gerekirse doğrusal olmayan) doz-yanıt modeli gereklidir (U.S. EPA 2025).",en:"<b>⚠ As-CR is a screening indicator, not a validated cancer risk.</b> Total arsenic is assumed to be 100% inorganic, and the estimated dose may exceed the low-dose range where the 2025 U.S. EPA linear cancer slope factor applies (~0.2 µg/kg-day inorganic As). As-CR is then only a provisional index for prioritising further assessment; a definitive estimate requires arsenic speciation and an appropriate (where needed, non-linear) dose–response model (U.S. EPA 2025)."},
+ asExclNote:{tr:"<b>HI (As hariç)</b> bir duyarlılık senaryosudur: arsenik, tehlike indeksinden çıkarılarak yeniden hesaplanır. HI ≥ 1 bayrağı arsenik çıkarılınca kayboluyorsa, tarama alarmı (analitik olarak doğrulanmamış) arsenik sinyaline bağlıdır ve arsenik teyidine koşullu okunmalıdır.",en:"<b>HI (As excluded)</b> is a sensitivity scenario in which arsenic is removed from the hazard index. If the HI ≥ 1 flag disappears once arsenic is excluded, the screening alarm depends on the (analytically unconfirmed) arsenic signal and should be read as conditional on arsenic confirmation."},
  prodName:{tr:"Ürün adı",en:"Product name"},doseIR:{tr:"Doz IR (g/gün)",en:"Dose IR (g/day)"},delProd:{tr:"Ürünü sil",en:"Delete product"},sample:{tr:"Numune",en:"Sample"},
  param:{tr:"Parametre",en:"Parameter"},meanH:{tr:"Ortalama",en:"Mean"},medH:{tr:"Medyan (P50)",en:"Median (P50)"},
  hiTot:{tr:"HI (toplam)",en:"HI (total)"},totCR:{tr:"As-tabanlı CR",en:"As-based CR"},
@@ -182,14 +184,14 @@ const I18N={
  stSix:{tr:"6 ürün yüklendi.",en:"6 products loaded."},stCsv:{tr:"{n} ürün CSV'den yüklendi.",en:"{n} products loaded from CSV."},
  stCmp:{tr:"{p} ürün · {n} iterasyon.",en:"{p} products · {n} iterations."},
  alMin:{tr:"En az bir takviye ekleyin.",en:"Add at least one supplement."},alCsv:{tr:"Ürün bulunamadı. Şablonu indirip biçimi kontrol edin.",en:"No products found. Download the template and check the format."},
- footDev:{tr:"<b>Geliştiren:</b> Bu araç, Çanakkale Onsekiz Mart Üniversitesi Bilimsel Araştırma Projeleri (THD-2025-5312) kapsamında geliştirilmiştir. Proje Yürütücüsü: Prof. Dr. Özlem Yayıntaş. Araştırmacılar: Doç. Dr. Burcu Mestav, Arş. Gör. Dr. Berrak Damla Yağan.",
-   en:"<b>Developed by:</b> This tool was developed within the Scientific Research Projects unit of Çanakkale Onsekiz Mart University (project THD-2025-5312). Principal Investigator: Prof. Dr. Özlem Yayıntaş. Researchers: Assoc. Prof. Dr. Burcu Mestav, Res. Asst. Dr. Berrak Damla Yağan."},
+ footDev:{tr:"<b>Geliştiren:</b> Bu araç, Çanakkale Onsekiz Mart Üniversitesi Bilimsel Araştırma Projeleri (THD-2025-5312) kapsamında geliştirilmiştir. Proje Yürütücüsü: Prof. Dr. Özlem Tonguç Yayıntaş. Araştırmacılar: Arş. Gör. Dr. Berrak Damla Yağan, Doç. Dr. Burcu Mestav.",
+   en:"<b>Developed by:</b> This tool was developed within the Scientific Research Projects unit of Çanakkale Onsekiz Mart University (project THD-2025-5312). Principal Investigator: Prof. Dr. Özlem Tonguç Yayıntaş. Researchers: Res. Asst. Dr. Berrak Damla Yağan, Assoc. Prof. Dr. Burcu Mestav."},
  footWarn:{tr:"<b>⚠ Toksisite değerlerinin güncelliği:</b> RfD ve CSF değerleri düzenleyici kurumlarca (ör. U.S. EPA IRIS) revize edilebilir; inorganik As değerleri Ocak 2025'te güncellenmiştir. Gömülü değerler <b>Ağustos 2026</b> itibarıyladır. Hesaplama öncesinde toksisite tablosunu güncel yayınla karşılaştırıp gerektiğinde hücreleri düzenleyin.",
    en:"<b>⚠ Currency of toxicity values:</b> RfD and CSF values may be revised by regulatory agencies (e.g., U.S. EPA IRIS); inorganic As values were updated in January 2025. Embedded values are current as of <b>August 2026</b>. Compare the toxicity table against current publications before calculating and edit the cells where necessary."},
  footMethod:{tr:"Yöntem: U.S. EPA (1989) risk değerlendirme çerçevesi; olasılıksal analiz için U.S. EPA (1997, 2001). Kanser riski yaşam boyu ortalama (LADD, ED/LT) ile yalnız inorganik As için hesaplanır; Pb ve toplam Cr HI/CR dışındadır. Bu bir tarama (screening-level) aracıdır; As türleşmesi yapılmadığında sonuçlar üst-sınır niteliğindedir. Tüm hesaplamalar tarayıcıda yerel yapılır; veri hiçbir sunucuya gönderilmez.",
    en:"Method: U.S. EPA (1989) risk framework; for probabilistic analysis U.S. EPA (1997, 2001). Cancer risk uses lifetime averaging (LADD, ED/LT) for inorganic As only; Pb and total Cr are excluded from HI/CR. This is a screening-level tool; without As speciation the results are upper-bound estimates. All computations run locally in the browser; no data are sent to any server."}
 };
-let LANG='tr';
+let LANG='en';
 function t(k,vars){let s=(I18N[k]&&I18N[k][LANG])||k;if(vars)for(const v in vars)s=s.replace('{'+v+'}',vars[v]);return s;}
 
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
@@ -207,7 +209,7 @@ function dlCSV(rows,name){const csv='\ufeff'+rows.map(function(r){return r.map(f
 function applyStatic(){
   document.querySelectorAll('[data-i18n]').forEach(function(el){el.textContent=t(el.dataset.i18n);});
   document.querySelectorAll('[data-i18n-html]').forEach(function(el){el.innerHTML=t(el.dataset.i18nHtml);});
-  document.title=t('title');document.documentElement.lang=LANG;document.getElementById('langBtn').textContent=(LANG==='tr'?'EN':'TR');
+  document.title=t('title');document.documentElement.lang=LANG;
 }
 function setLang(l){LANG=l;applyStatic();sBuild(sRead());render();if(lastSingle)renderSingle(lastSingle);if(lastCompare)renderCompare(lastCompare);}
 
@@ -229,20 +231,20 @@ function simulate(sp,tox,detail){
   const HIel=ELEMENTS.filter(function(e){return RfD[e]>0;});
   const CARC=ELEMENTS.filter(function(e){return CSF[e]>0;});
   const rnd=mulberry32(tox.seed+sp.name.length*7+Math.round(sp.ir*100));
-  const HI=new Float64Array(N),CRt=new Float64Array(N);const ns=sp.samples.length;
+  const HI=new Float64Array(N),HInoAs=new Float64Array(N),CRt=new Float64Array(N);const ns=sp.samples.length;
   let HQd=null,CRd=null;
   if(detail){HQd={};HIel.forEach(function(e){HQd[e]=new Float64Array(N);});CRd={};CARC.forEach(function(e){CRd[e]=new Float64Array(N);});}
   for(let i=0;i<N;i++){
-    const BW=tox.BWmin+rnd()*(tox.BWmax-tox.BWmin);const s=sp.samples[Math.floor(rnd()*ns)];let hi=0,crt=0;
-    HIel.forEach(function(e){let c=(s[e]||0);if(e==='As')c*=iAs;const EDI=(EF*ED*sp.ir*c*CF)/(BW*AT);const hq=EDI/RfD[e];hi+=hq;if(detail)HQd[e][i]=hq;});
+    const BW=tox.BWmin+rnd()*(tox.BWmax-tox.BWmin);const s=sp.samples[Math.floor(rnd()*ns)];let hi=0,hiNoAs=0,crt=0;
+    HIel.forEach(function(e){let c=(s[e]||0);if(e==='As')c*=iAs;const EDI=(EF*ED*sp.ir*c*CF)/(BW*AT);const hq=EDI/RfD[e];hi+=hq;if(e!=='As')hiNoAs+=hq;if(detail)HQd[e][i]=hq;});
     CARC.forEach(function(e){let c=(s[e]||0);if(e==='As')c*=iAs;const EDI=(EF*ED*sp.ir*c*CF)/(BW*AT);const cr=EDI*(ED/LT)*CSF[e];crt+=cr;if(detail)CRd[e][i]=cr;});
-    HI[i]=hi;CRt[i]=crt;
+    HI[i]=hi;HInoAs[i]=hiNoAs;CRt[i]=crt;
   }
   const meanC={};ELEMENTS.forEach(function(e){meanC[e]=mean(sp.samples.map(function(s){return s[e]||0;}));});
-  let dHI=0,dCR=0;
-  HIel.forEach(function(e){let c=meanC[e];if(e==='As')c*=iAs;const EDI=(EF*ED*sp.ir*c*CF)/(70*AT);dHI+=EDI/RfD[e];});
+  let dHI=0,dHInoAs=0,dCR=0;
+  HIel.forEach(function(e){let c=meanC[e];if(e==='As')c*=iAs;const EDI=(EF*ED*sp.ir*c*CF)/(70*AT);const hq=EDI/RfD[e];dHI+=hq;if(e!=='As')dHInoAs+=hq;});
   CARC.forEach(function(e){let c=meanC[e];if(e==='As')c*=iAs;const EDI=(EF*ED*sp.ir*c*CF)/(70*AT);dCR+=EDI*(ED/LT)*CSF[e];});
-  return {name:sp.name,ir:sp.ir,dHI:dHI,dCR:dCR,HIel:HIel,CARC:CARC,hiMean:mean(HI),hiP95:pct(HI,0.95),crP95:pct(CRt,0.95),pHI:HI.filter(function(x){return x>1;}).length/N*100,pCR:CRt.filter(function(x){return x>1e-4;}).length/N*100,HI:detail?HI:null,HQd:HQd,CRd:CRd,CRt:detail?CRt:null};
+  return {name:sp.name,ir:sp.ir,dHI:dHI,dCR:dCR,HIel:HIel,CARC:CARC,hiMean:mean(HI),hiP95:pct(HI,0.95),hiP95NoAs:pct(HInoAs,0.95),hiMeanNoAs:mean(HInoAs),dHInoAs:dHInoAs,HInoAs:detail?HInoAs:null,crP95:pct(CRt,0.95),pHI:HI.filter(function(x){return x>1;}).length/N*100,pCR:CRt.filter(function(x){return x>1e-4;}).length/N*100,HI:detail?HI:null,HQd:HQd,CRd:CRd,CRt:detail?CRt:null};
 }
 
 /* SINGLE */
@@ -262,9 +264,11 @@ function renderSingle(r){
   document.getElementById("s_mHI").textContent=r.hiP95.toFixed(3);document.getElementById("s_mCR").textContent=fmtCR(r.crP95);
   const ms=r.hiP95<1&&r.crP95<1e-4;document.getElementById("s_mV").outerHTML='<span id="s_mV" class="verdict '+(ms?"safe":"risk")+'">'+(ms?t('safe'):t('risk'))+'</span>';
   document.getElementById("s_pHI").textContent=r.pHI.toFixed(1);document.getElementById("s_pCR").textContent=r.pCR.toFixed(1);
+  document.getElementById("s_mHIx").textContent=r.hiP95NoAs.toFixed(3);document.getElementById("s_dHIx").textContent=r.dHInoAs.toFixed(3);
   let h="<tr><th>"+t('param')+"</th><th>"+t('meanH')+"</th><th>"+t('medH')+"</th><th>P95</th></tr>";
   r.HIel.forEach(function(e){h+="<tr><td>HQ · "+e+"</td><td>"+mean(r.HQd[e]).toFixed(4)+"</td><td>"+pct(r.HQd[e],0.5).toFixed(4)+"</td><td>"+pct(r.HQd[e],0.95).toFixed(4)+"</td></tr>";});
   h+='<tr class="'+(r.hiP95>=1?'hi':'ok')+'"><td><b>'+t('hiTot')+'</b></td><td><b>'+r.hiMean.toFixed(3)+'</b></td><td><b>'+pct(r.HI,0.5).toFixed(3)+'</b></td><td><b>'+r.hiP95.toFixed(3)+'</b></td></tr>';
+  h+='<tr class="ok"><td><b>HI (As excluded)</b></td><td><b>'+r.hiMeanNoAs.toFixed(3)+'</b></td><td><b>'+pct(r.HInoAs,0.5).toFixed(3)+'</b></td><td><b>'+r.hiP95NoAs.toFixed(3)+'</b></td></tr>';
   r.CARC.forEach(function(e){h+="<tr><td>CR · "+e+"</td><td>"+fmtCR(mean(r.CRd[e]))+"</td><td>"+fmtCR(pct(r.CRd[e],0.5))+"</td><td>"+fmtCR(pct(r.CRd[e],0.95))+"</td></tr>";});
   h+='<tr class="'+(r.crP95>=1e-4?'mid':'ok')+'"><td><b>'+t('totCR')+'</b></td><td><b>'+fmtCR(mean(r.CRt))+'</b></td><td><b>'+fmtCR(pct(r.CRt,0.5))+'</b></td><td><b>'+fmtCR(r.crP95)+'</b></td></tr>';
   document.getElementById("s_table").innerHTML=h;
@@ -274,6 +278,7 @@ function renderSingle(r){
 function dlSingleTable(){if(!lastSingle)return;const r=lastSingle;const rows=[[t('param'),t('meanH'),"P50","P95"]];
   r.HIel.forEach(function(e){rows.push(["HQ_"+e,mean(r.HQd[e]).toFixed(5),pct(r.HQd[e],0.5).toFixed(5),pct(r.HQd[e],0.95).toFixed(5)]);});
   rows.push(["HI",r.hiMean.toFixed(4),pct(r.HI,0.5).toFixed(4),r.hiP95.toFixed(4)]);
+  rows.push(["HI_As_excluded",r.hiMeanNoAs.toFixed(4),pct(r.HInoAs,0.5).toFixed(4),r.hiP95NoAs.toFixed(4)]);
   r.CARC.forEach(function(e){rows.push(["CR_"+e,mean(r.CRd[e]).toExponential(3),pct(r.CRd[e],0.5).toExponential(3),pct(r.CRd[e],0.95).toExponential(3)]);});
   rows.push(["As_CR_total",mean(r.CRt).toExponential(3),pct(r.CRt,0.5).toExponential(3),r.crP95.toExponential(3)]);
   dlCSV(rows,"single_product_result.csv");}
@@ -323,16 +328,16 @@ function parseCSV(txt){
 }
 function runAll(){if(supps.length===0){alert(t('alMin'));return;}const tox=readTox();const res=supps.map(function(sp){return simulate(sp,tox,false);});lastCompare=res;renderCompare(res);document.getElementById("c_status").textContent=t('stCmp',{p:res.length,n:tox.N.toLocaleString()});}
 function renderCompare(res){
-  let h="<tr><th>"+t('colProd')+"</th><th>"+t('colDose')+"</th><th>HI P95</th><th>As-CR P95</th><th>P(HI&gt;1)%</th><th>P(CR&gt;1e-4)%</th><th>"+t('colDec')+"</th></tr>";
+  let h="<tr><th>"+t('colProd')+"</th><th>"+t('colDose')+"</th><th>HI P95</th><th>HI P95 (As excl.)</th><th>As-CR P95</th><th>P(HI&gt;1)%</th><th>P(CR&gt;1e-4)%</th><th>"+t('colDec')+"</th></tr>";
   res.forEach(function(r){const safe=r.hiP95<1&&r.crP95<1e-4;const cls=r.hiP95>=1?"hi":(r.crP95>=1e-4?"mid":"ok");
-    h+='<tr class="'+cls+'"><td><b>'+r.name+'</b></td><td>'+r.ir+'</td><td>'+r.hiP95.toFixed(3)+'</td><td>'+fmtCR(r.crP95)+'</td><td>'+r.pHI.toFixed(1)+'</td><td>'+r.pCR.toFixed(1)+'</td><td>'+verdictSpan(safe,r.hiP95>=1)+'</td></tr>';});
+    h+='<tr class="'+cls+'"><td><b>'+r.name+'</b></td><td>'+r.ir+'</td><td>'+r.hiP95.toFixed(3)+'</td><td>'+r.hiP95NoAs.toFixed(3)+'</td><td>'+fmtCR(r.crP95)+'</td><td>'+r.pHI.toFixed(1)+'</td><td>'+r.pCR.toFixed(1)+'</td><td>'+verdictSpan(safe,r.hiP95>=1)+'</td></tr>';});
   document.getElementById("cmpTable").innerHTML=h;
   drawBars(document.getElementById("chHI"),res.map(function(r){return r.name;}),res.map(function(r){return r.hiP95;}),1,t('chHI'));
   drawBars(document.getElementById("chCR"),res.map(function(r){return r.name;}),res.map(function(r){return r.crP95;}),1e-4,t('chCR'));
   document.getElementById("c_res").classList.remove("hidden");
 }
-function dlCompareTable(){if(!lastCompare)return;const rows=[["Product","Dose_g","HI_P95","As_CR_P95","P_HI_gt1_%","P_CR_gt1e-4_%","Decision"]];
-  lastCompare.forEach(function(r){const safe=r.hiP95<1&&r.crP95<1e-4;rows.push([r.name,r.ir,r.hiP95.toFixed(4),r.crP95.toExponential(3),r.pHI.toFixed(1),r.pCR.toFixed(1),safe?"below_thr":(r.hiP95>=1?"HI_ge_1":"CR_gt_1e-4")]);});
+function dlCompareTable(){if(!lastCompare)return;const rows=[["Product","Dose_g","HI_P95","HI_P95_As_excluded","As_CR_P95","P_HI_gt1_%","P_CR_gt1e-4_%","Decision"]];
+  lastCompare.forEach(function(r){const safe=r.hiP95<1&&r.crP95<1e-4;rows.push([r.name,r.ir,r.hiP95.toFixed(4),r.hiP95NoAs.toFixed(4),r.crP95.toExponential(3),r.pHI.toFixed(1),r.pCR.toFixed(1),safe?"below_thr":(r.hiP95>=1?"HI_ge_1":"CR_gt_1e-4")]);});
   dlCSV(rows,"comparison_result.csv");}
 function drawBars(cv,labels,values,threshold,title){
   const o=hidpi(cv,540,330),ctx=o.ctx,W=o.W,H=o.H;ctx.clearRect(0,0,W,H);

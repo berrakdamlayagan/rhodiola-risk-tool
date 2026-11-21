@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: "If you use this tool or its analysis, please cite it as below."
+title: "Rhodiola rosea elemental-impurity decision-support screening tool and Monte Carlo analysis"
+type: software
+authors:
+  - family-names: "Tonguç Yayıntaş"
+    given-names: "Özlem"
+    affiliation: "Çanakkale Onsekiz Mart University"
+  - family-names: "Yağan"
+    given-names: "Berrak Damla"
+    affiliation: "Çanakkale Onsekiz Mart University"
+  - family-names: "Mestav"
+    given-names: "Burcu"
+    affiliation: "Çanakkale Onsekiz Mart University"
+version: "1.0.0"
+date-released: "2026-11-21"
+doi: "10.5281/zenodo.24167368"
+license: MIT
+url: "https://github.com/berrakdamlayagan/rhodiola-risk-tool"
+repository-code: "https://github.com/berrakdamlayagan/rhodiola-risk-tool"
+keywords:
+  - "Rhodiola rosea"
+  - "dietary supplements"
+  - "elemental contaminants"
+  - "Monte Carlo simulation"
+  - "decision-support model"
+  - "health risk screening"
